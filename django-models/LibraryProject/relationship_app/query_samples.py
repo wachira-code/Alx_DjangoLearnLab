@@ -9,5 +9,5 @@ def books_in_library(library_name):
 	books = library.books.all()
 
 def librarian_for_library(librarian_name):
-	librarian = Librarian.objects.get(name=librarian_name)
+	librarian = Librarian.objects.get(library=library)
 	librarian = librarian.librarian
