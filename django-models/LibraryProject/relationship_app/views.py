@@ -59,13 +59,13 @@ def user_logout(request):
 	messages.info(request, 'You have been logged out successfully.')
 	return redirect('login')
 
-def user_is_admin(user):
+def Admin(user):
 	return user.is_authenticated and hasattr(user, 'profile') and user.profile.role == 'Admin'
 
-def user_is_librarian(user):
+def Librarian(user):
 	return user.is_authenticated and hasattr(user, 'profile') and user.profile.role == 'Librarian'
 	
-def user_is_member(user):
+def Member(user):
 	return user.is_authenticated and hasattr(user, 'profile') and user.profile.role == 'Member'
 	
 @login_required
