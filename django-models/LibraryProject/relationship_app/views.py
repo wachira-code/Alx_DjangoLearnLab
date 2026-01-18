@@ -4,6 +4,7 @@ from django.views.generic.detail import ListView
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseForbidden
 from django.contrib import messages
 from .models import Library
 from .models import Book
@@ -57,3 +58,45 @@ def user_logout(request):
 	logout(request)
 	messages.info(request, 'You have been logged out successfully.')
 	return redirect('login')
+
+def user_is_admin(user):
+	return user.is_authenticated and hasattr(user, 'profile') and user.profile.role == 'Admin'
+
+def user_is_librarian(user):
+	return user.is_authenticated and hasattr(user, 'profile') and user.profile.role == 'Librarian'
+	
+def user_is_member(user):
+	return user.is_authenticated and hasattr(user, 'profile') and user.profile.role == 'Member'
+	
+@login_required
+@user_passes_test(user_is_admin, login_url='/access-denied/')
+def admin_view(request):
+	context = {
+		'user': request.user,
+		'role': request.user.profile.role,
+		'page_title': 'Admin Dashboard'
+	}
+	return render(request, 'admin_view.html', context)
+
+@login_required
+@user_passes_test(user_is_librarian, login_url='/access-denied/')
+def librarian_view(request):
+	context = {
+		'user': request.user,
+		'role': request.user.profile.role,
+		'page_title': 'Librarian Dashboard'
+	}
+	return render(request, 'librarian_view.html', context)
+	
+@login_required
+@user_passes_test(user_is_member, login_url='/access-denied/')
+def member_view(request):
+	context = {
+		'user': request.user,
+		'role': request.user.profile.role,
+		'page_title': 'Member Dashboard'
+	}
+	return render(request, 'member_view.html', context)
+
+def access_denied(request):
+	return render(request, 'access_denied.html', status=403)
