@@ -69,7 +69,7 @@ def Member(user):
 	return user.is_authenticated and hasattr(user, 'profile') and user.profile.role == 'Member'
 	
 @login_required
-@user_passes_test(user_is_admin, login_url='/access-denied/')
+@user_passes_test(Admin, login_url='/access-denied/')
 def admin_view(request):
 	context = {
 		'user': request.user,
@@ -79,7 +79,7 @@ def admin_view(request):
 	return render(request, 'admin_view.html', context)
 
 @login_required
-@user_passes_test(user_is_librarian, login_url='/access-denied/')
+@user_passes_test(Librarian, login_url='/access-denied/')
 def librarian_view(request):
 	context = {
 		'user': request.user,
@@ -89,7 +89,7 @@ def librarian_view(request):
 	return render(request, 'librarian_view.html', context)
 	
 @login_required
-@user_passes_test(user_is_member, login_url='/access-denied/')
+@user_passes_test(Member, login_url='/access-denied/')
 def member_view(request):
 	context = {
 		'user': request.user,
