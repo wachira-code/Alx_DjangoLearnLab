@@ -61,43 +61,28 @@ def user_logout(request):
 	return redirect('login')
 
 def Admin(user):
-	return user.is_authenticated and hasattr(user, 'profile') and user.profile.role == 'Admin'
+	return hasattr(user, 'userprofile') and user.userprofile.role == 'Admin'
 
 def Librarian(user):
-	return user.is_authenticated and hasattr(user, 'profile') and user.profile.role == 'Librarian'
+	return hasattr(user, 'userprofile') and user.userprofile.role == 'Librarian'
 	
 def Member(user):
-	return user.is_authenticated and hasattr(user, 'profile') and user.profile.role == 'Member'
+	return hasattr(user, 'userprofile') and user.userprofile.role == 'Member'
 	
 @login_required
 @user_passes_test(Admin, login_url='/access-denied/')
 def admin_view(request):
-	context = {
-		'user': request.user,
-		'role': request.user.profile.role,
-		'page_title': 'Admin Dashboard'
-	}
-	return render(request, 'admin_view.html', context)
+	return render(request, 'relationship_app/admin_view.html')
 
 @login_required
 @user_passes_test(Librarian, login_url='/access-denied/')
 def librarian_view(request):
-	context = {
-		'user': request.user,
-		'role': request.user.profile.role,
-		'page_title': 'Librarian Dashboard'
-	}
-	return render(request, 'librarian_view.html', context)
+	return render(request, 'relationship_app/librarian_view.html')
 	
 @login_required
 @user_passes_test(Member, login_url='/access-denied/')
 def member_view(request):
-	context = {
-		'user': request.user,
-		'role': request.user.profile.role,
-		'page_title': 'Member Dashboard'
-	}
-	return render(request, 'member_view.html', context)
+	return render(request, 'relationship_app/member_view.html')
 
 def access_denied(request):
-	return render(request, 'access_denied.html', status=404)
+	return render(request, 'relationship_app/access_denied.html', status=404)
