@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic.detail import DetailView
 from django.views.generic.detail import ListView
 from django.contrib.auth import login, logout, authenticate
@@ -8,6 +8,7 @@ from django.http import HttpResponseForbidden
 from django.contrib import messages
 from .models import Library
 from .models import Book
+from .models import UserProfile
 
 def list_books(request):
 	books = Book.objects.all()
@@ -99,4 +100,4 @@ def member_view(request):
 	return render(request, 'member_view.html', context)
 
 def access_denied(request):
-	return render(request, 'access_denied.html', status=403)
+	return render(request, 'access_denied.html', status=404)
