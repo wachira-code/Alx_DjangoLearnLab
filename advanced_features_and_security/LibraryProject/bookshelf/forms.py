@@ -114,7 +114,7 @@ class BookSearchForm(forms.Form):
         return query
 
 
-class ExampleContactForm(forms.Form):
+class ExampleForm(forms.Form):
     """
     Example form demonstrating comprehensive validation
     """
