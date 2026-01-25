@@ -6,7 +6,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.urls import reverse_lazy
 from .models import Book
-from .forms import BookForm, BookSearchForm
+from .forms import BookForm, BookSearchForm, ExampleForm
 
 
 @login_required
