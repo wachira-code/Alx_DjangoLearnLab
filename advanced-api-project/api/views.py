@@ -2,6 +2,7 @@ from django.shortcuts import render
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework import filters
 from django_filters import rest_framework
 from rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -26,6 +27,7 @@ class BookListView(generics.ListAPIView):
 	#allow ordering by these fields
 	ordering_fields = ['title', 'publication_year']
 	ordering = ['title'] #default ordering field
+	
 #view for retrieving a single book by id
 class BookDetailView(generics.RetrievAPIView):
 	queryset = Book.objects.all()
