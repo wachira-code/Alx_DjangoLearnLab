@@ -160,5 +160,11 @@ class BookAPITestCase(TestCase):
         response = self.client.post(self.create_url, incomplete_data, format='json')
         
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_login_method_example_test(self):
+    	login_successful = self.client.login(username='testuser', password='testpass123')
+    	self.assertEqual(login_successful)
+    	self.client.logout()
+     
 			
 
