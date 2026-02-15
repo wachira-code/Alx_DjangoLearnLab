@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}All Posts - Django Blog{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Blog Posts</h2>
+    <p>Explore all blog posts from our community</p>
+    
+    {% if user.is_authenticated %}
+        <a href="{% url 'post_create' %}" class="btn btn-primary mb-3">Create New Post</a>
+    {% endif %}
+</div>
+
+{% if posts %}
+    {% for post in posts %}
+        <div class="post-card">
+            <h3 class="post-title">
+                <a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a>
+            </h3>
+            <div class="post-meta">
+                By <a href="#">{{ post.author.username }}</a> | 
+                {{ post.created_at|date:"F d, Y" }}
+                {% if post.created_at != post.updated_at %}
+                    (Updated: {{ post.updated_at|date:"F d, Y" }})
+                {% endif %}
+            </div>
+            <div class="post-excerpt">
+                {{ post.content|truncatewords:50 }}
+            </div>
+            <a href="{% url 'post_detail' post.pk %}" class="btn btn-primary btn-small">Read More</a>
+        </div>
+    {% endfor %}
+    
+    {% if is_paginated %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">First</a>
+                <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            {% endif %}
+            
+            <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">Next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+            {% endif %}
+        </div>
+    {% endif %}
+{% else %}
+    <div class="card no-posts">
+        <p>No blog posts yet. Be the first to create one!</p>
+        {% if user.is_authenticated %}
+            <a href="{% url 'post_create' %}" class="btn btn-primary mt-3">Create First Post</a>
+        {% endif %}
+    </div>
+{% endif %}
+{% endblock %}
