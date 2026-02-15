@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Post
+from .models import Post, Comment
 from django.contrib.auth.forms import UserCreationForm
 
 class UserRegistrationForm(UserCreationForm):
@@ -40,4 +40,22 @@ class PostForm(forms.ModelForm):
 			super().__init__(*args, **kwargs)
 			self.fields['title'].label = 'Post Title'
 			self.fields['content'].label = 'Post Content'
-			
+
+class CommentForm(forms.ModelForm):
+	class Meta:
+		model = Comment
+		fields = ['content']
+		widgets = {
+			'content': forms.Textarea(attrs={
+				'class': 'form-control',
+				'placeholder': 'Write your comment here...',
+				'rows': 4
+			}),
+		}
+		labels = {
+			'content': 'Your Comment'
+		}
+		
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.fields['content'].required = True		

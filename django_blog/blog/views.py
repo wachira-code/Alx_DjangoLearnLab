@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import Http404
+from django.http import Http404, HttpResponseRedirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -9,8 +9,8 @@ from django.contrib.auth.models import User
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
-from .models import Post
-from .forms import PostForm
+from .models import Post, Comment
+from .forms import PostForm, CommentForm
 
 
 class UserRegistrationForm(UserCreationForm):
@@ -112,6 +112,12 @@ class PostDetailView(DetailView):
 	template_name = 'blog/post_detail.html'
 	context_object_name = 'post'
 	
+	def get_context_data(self, **kwargs):
+		content = super().get_context_data(**kwargs)
+		context['comments'] = self.object.comments.all().select_related('author')
+		context['comment_form'] = CommentForm()
+		return context
+	
 class PostCreateView(LoginRequiredMixin, CreateView):
 	model = Post
 	form_class = PostForm
@@ -160,5 +166,62 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 	def delete(self, request, *args, **kwargs):
 		messages.success(request, 'Post deleted successfully!')
 		return super().delete(request, *args, **kwargs)
+
+@login_required(login_url='login')
+def comment_create_view(request, pk):
+	post = Post.objects.get(pk=pk)
+	
+	if request.method == 'POST':
+		form = CommentForm(request.POST)
+		if form.is_valid():
+			comment = form.save(commit=False)
+			comment.post = post
+			comment.author = request.user
+			comment.save()
+			messages.success(request, 'Comment added successfully!')
+			return redirect('post_detail', pk=post.pk)
+		else:
+			form = CommentForm()
 		
+		return render(request, 'blog/comment_form.html', {
+			'form': form,
+			'post': post,
+			'form_title': 'Add Comment'
+		})
+		
+class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+	model = Comment
+	form_class = CommentForm
+	template_name = 'blog/comment_form.html'
+	login_url = 'login'
+	
+	def form_valid(self, form):
+		messages.success(self.request, 'Comment updated successfully!')
+		return super().form_valid(form)
+		
+	def test_func(self):
+		comment = self.get.object()
+		return self.request.user -- comment.author
+		
+	def get_context_data(self, **kwargs):
+		context = super().get_context_data(**kwargs)
+		context['form_title'] = 'Edit Comment'
+		context['post'] = self.get_object().post
+		return context
+		
+class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+	model = Comment
+	template_name = 'blog/comment_confirm_delete.html'
+	login_url = 'login'
+	
+	def test_func(self):
+		comment = self.get_object()
+		return self.request.user == comment.author
+		
+	def get_success_url(self):
+		return reverse_lazy('post_detail', kwargs={'pk': self.object.post.pk})
+		
+	def delete(self, request, *args, **kwargs):
+	messages.success(request, 'Comment deleted successfully!')
+	return super().delete(request, *args, **kwargs)
 
