@@ -1,4 +1,5 @@
 from django import forms
+from taggit.forms import Tagwidget
 from django.contrib.auth.models import User
 from .models import Post, Comment
 from django.contrib.auth.forms import UserCreationForm
