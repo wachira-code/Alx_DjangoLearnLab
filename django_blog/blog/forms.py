@@ -39,9 +39,9 @@ class PostForm(forms.ModelForm):
 				'placeholder': 'Write your post content here',
 				'rows': 10
 			}),
-			'tags': forms.TextInput(attrs={
+			'tags': TagWidget(attrs={
 				'class': 'form-control',
-				'placeholder': 'Enter tags separatedby commas'
+				'placeholder': 'Enter tags separated by commas'
 			}),
 		labels = {
 			'title': 'Post Title',
