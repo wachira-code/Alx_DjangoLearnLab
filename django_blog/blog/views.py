@@ -167,28 +167,29 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 		messages.success(request, 'Post deleted successfully!')
 		return super().delete(request, *args, **kwargs)
 
-@login_required(login_url='login')
-def comment_create_view(request, pk):
-	post = Post.objects.get(pk=pk)
+
+class commentCreateView(LoginRequiredMixin, CreateView):
+	model = Comment
+	form_class = CommentForm
+	template_name = 'blog/comment_form.html'
+	login_url = 'login'
 	
-	if request.method == 'POST':
-		form = CommentForm(request.POST)
-		if form.is_valid():
-			comment = form.save(commit=False)
-			comment.post = post
-			comment.author = request.user
-			comment.save()
-			messages.success(request, 'Comment added successfully!')
-			return redirect('post_detail', pk=post.pk)
-		else:
-			form = CommentForm()
+	def form_valid(self, form):
+		form.instance.post = Post.objects.get(pk=self.kwargsp'pk'])
+		form.instance.author = self.request.user
+		messages.success(self.request, 'Comment added successfully!')
+		return super().forrm_valid(form)
 		
-		return render(request, 'blog/comment_form.html', {
-			'form': form,
-			'post': post,
-			'form_title': 'Add Comment'
-		})
+	def get_context_data(self, **kwargs):
+		context = super().get_context_data(**kwargs)
+		context['post'] = Post.objects.get(pk=self.kwargs['pk'])
+		context['form_title'] = 'Add Comment'
+		return context
 		
+	def get_success_url(seLf):
+		return reverse_lazy('post_detail', kwargs={'pk': self.kwargs['pk']})
+	
+	
 class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 	model = Comment
 	form_class = CommentForm
