@@ -9,6 +9,8 @@ from django.contrib.auth.models import User
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
+from django.db.models import Q, Count
+from taggit.models import Tag
 from .models import Post, Comment
 from .forms import PostForm, CommentForm
 
@@ -116,6 +118,9 @@ class PostDetailView(DetailView):
 		content = super().get_context_data(**kwargs)
 		context['comments'] = self.object.comments.all().select_related('author')
 		context['comment_form'] = CommentForm()
+		post_tags_ids = self.object.tags.values_list('id', flat=True)
+		similar_posts = Post.objects.filter(tags__in=post_tags_ids).exclude(id=self.object.id)
+		context['similar_posts'] = similar_posts.annotate(same_tags=Count('tags'((.order_by('-same_tags', '-created_at')[:4]
 		return context
 	
 class PostCreateView(LoginRequiredMixin, CreateView):
@@ -226,3 +231,39 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 	messages.success(request, 'Comment deleted successfully!')
 	return super().delete(request, *args, **kwargs)
 
+class TaggedPostListView(ListView):
+	model = Post
+	template_name = 'blog/tagged_posts.html'
+	context_object_name = 'posts'
+	paginate_by = 10
+	
+	def get_queryset(self):
+		tag_slug = self.kwargs.get('tag_slug')
+		return Post.objects.filter(tags__slug=tag_slug).select_related('author').prefetch_related('tags')
+		
+	def get_context_data(self, **kwargs):
+		context = super().get_context_data(**kwargs)
+		context['tag'] = Tag.objects.get(slug=self.kwargs.get('tag_slug'))
+		return context
+		
+class SearchResultsView(ListView):
+	model = Post
+	template_name = 'blog/Search_results.html'
+	context_object_name = 'posts'
+	paginate_by 10
+	
+	def get_queryset(self):
+		query = self.request.GET.get('q', '')
+		if query:
+			return Post.objects.filter(
+				Q(title__icontains=query) |
+				Q(content__icontains=query) |
+				Q(tags__name__icontains=query)
+			).distinct().select_related('author').prefetch_related('tags')
+		return Post.objects.none()
+		
+	def get_context_data(self, **kwargs):
+		context = super().get_context_data(**kwargs)
+		context['query'] = self.request.GET.get('q', '')
+		context['total_results'] = self.get_queryset().count()
+		return context

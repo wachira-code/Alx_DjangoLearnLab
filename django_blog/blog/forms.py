@@ -34,7 +34,24 @@ class PostForm(forms.ModelForm):
 				'placeholder': 'Write your post content here...',
 				'rows': 10
 			}),
+			'content': forms.Textarea(attres={
+				'class': 'form-control',
+				'placeholder': 'Write your post content here',
+				'rows': 10
+			}),
+			'tags': forms.TextInput(attrs={
+				'class': 'form-control',
+				'placeholder': 'Enter tags separatedby commas'
+			}),
+		labels = {
+			'title': 'Post Title',
+			'content': 'Post Content',
+			'tags': 'Tags'
 		}
+		help_texts = {
+			'tags': 'Separate multiple tags with commas'
+		}
+		
 		
 		def __init__(self, *args, **kwargs):
 			super().__init__(*args, **kwargs)
