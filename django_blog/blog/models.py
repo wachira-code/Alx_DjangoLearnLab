@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.urls import reverse
 
 class Post(models.Model):
 	title = models.CharField(max_length=200)
@@ -13,8 +14,11 @@ class Post(models.Model):
 	def __str__(self):
 		return self.title
 		
+	def get_absolutr_url(self):
+		return reverse('post_detail', kwargs={'pk': self.pk})
+		
 class Profile(models.Model):
-	user = models.OneToOneField(User, o_delete=models.CASCADE)
+	user = models.OneToOneField(User, on_delete=models.CASCADE)
 	image = models.ImageField(default='default.jpg', upload_to='profile_pics')
 	bio = models.TextField(blank=True)
 	
