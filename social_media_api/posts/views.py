@@ -36,8 +36,8 @@ class FeedView(APIView):
 	permission_classes = [permissions.IsAuthenticated]
 	
 	def get(self, request):
-		followed_users = request.user.following.all() #get all users that current user follows
-		posts = Post.objects.filter(author__in=followed_users).order_by('-created_at') #get posts from those users with the most recent coming first
+		following_users = request.user.following.all() #get all users that current user follows
+		posts = Post.objects.filter(author__in=following_users).order_by('-created_at') #get posts from those users with the most recent coming first
 		paginator = PostPagination()
 		paginated_posts = paginator.paginate_queryset(posts, request)
 		serializer = PostSerializer(paginated_posts, many=True)
