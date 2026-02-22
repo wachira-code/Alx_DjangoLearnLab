@@ -1,5 +1,4 @@
 from django.shortcuts import render
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import generics, status, permissions
 from rest_framework.authtoken.models import Token
@@ -9,38 +8,41 @@ from .serializers import RegisterSerializer, LoginSerializer, UserProfileSeriali
 
 User = get_user_model()
 
-class RegisterView(APIView):
+class RegisterView(generics.GenericAPIView):
 	permission_classes = [permissions.AllowAny]
+	serializer_class = RegisterSerializer
 	
 	def post(self, request):
-		serializer = RegisterSerializer(data=request.data)
+		serializer = self.get_serializer(data=request.data)
 		if serializer.is_valid():
-			User = serializer.save()
+			user = serializer.save()
 			token, _ = Token.objects.get_or_create(user=user)
 			return Response({'token': token.key, 'user': serializer.data}, status=status.HTTP_201_CREATED)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 		
-class LoginView(APIView):
+class LoginView(generics.GenericAPIView):
 	permission_classes = [permissions.AllowAny]
+	serializer_class = LoginSerializer
 	
 	def post(self, request):
-		serializer = LoginSerializer(data=request.data)
+		serializer = sself.get_serializer(data=request.data)
 		if serializer.is_valid():
-			User = authenticate(
+			user = authenticate(
 				username=serializer.validated_data['username'],
 				password=serializer.validated_data['password']
 			)
-			if User:
+			if user:
 				token, _ = token.objects.get_or_create(user=user)
 				return Response({'token': token.key})
 			return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 		
-class ProfileView(APIView):
+class ProfileView(generics.GenericAPIView):
 	permission_classes = [permissions.IsAuthenticated]
+	serializer_class = UserProfileSerializer
 	
 	def get(self, request):
-		serializer = UserProfileSerializer(request.User)
+		serializer = self.get_serializer(request.user)
 		return Response(serializer.data)
 		
 	def put(self, request):
@@ -63,7 +65,7 @@ class FollowUserView(generics.GenericAPIView):
 			return Response({'error': 'You cannot follow yourself.'}, status=status.HTTP_400_BAD_REQUEST)
 			
 		request.user.following.add(target_user)
-		return Response({'message': f"You are now following {target_user.username}.", status=status.HTTP_200_OK)
+		return Response({'message': f"You are now following {target_user.username}."}, status=status.HTTP_200_OK)
 		
 class UnfollowUserView(generics.GenericAPIView):
 	permission_classes = [permissions.IsAuthenticated]
@@ -78,6 +80,6 @@ class UnfollowUserView(generics.GenericAPIView):
 			return Response({'error': 'You cannot unfollow yourself.'}, status=status.HTTP_400_BAD_REQUEST)
 			
 		request.user.following.remove(target_user)
-		return Response({'message': f"You have unfollowed {target_user.username}.", status=status.HTTP_200_OK)
+		return Response({'message': f"You have unfollowed {target_user.username}."}, status=status.HTTP_200_OK)
 			
 

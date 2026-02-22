@@ -1,11 +1,13 @@
 from django.shortcuts import render
-from rest_framework import viewsets, permissions, filters
-from .views import APIView
+from rest_framework import viewsets, permissions, filters, generics, status
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
-from .models import Post, Comment
+from .models import Post, Comment, Like
 from .serializers import PostSerializer, CommentSerializer
 from .permissions import IsAuthorOrReadOnly
+from notifications.models import Notification
+from django.contrib.contenttypes.models import ContentType
 
 class PostPagination(PageNumberPagination):
 	page_size = 10
@@ -42,3 +44,31 @@ class FeedView(APIView):
 		paginated_posts = paginator.paginate_queryset(posts, request)
 		serializer = PostSerializer(paginated_posts, many=True)
 		return Paginator.get_paginated_response(serializer.data)
+
+class LikePostView(generics.GenericAPIView):
+	permission_classes = [permissions.IsAuthenticated]
+	
+	def post(self, request, pk):
+		post = get_object_or_404(Post, pk=pk)
+		like, created = Like.objects.get_or_create(post=post,user=request.user)
+		
+		if not created:
+			return Response({'message': 'You have alraedy liked this post.'}, status=status.HTTP_400_BAD_REQUEST)
+			
+		if post.author != request.user:
+			Notification.objects.create(recipient=post.author, actor=request.user, verb='liked your post', target=post)
+			
+		return Response({'message': 'Post liked successfully'}, status=status.HTTP_201_CREATED)
+		
+class UnlikePostView(generics.GenericAPIView):
+	permission_classes = [permissions.IsAuthenticated]
+	
+	def post(self, request, pk):
+		post = get_object_or_404(Post, pk=pk)
+		like = Like.objects.filter(post=post,user=request.user)
+		
+		if not like.exists():
+			return Response({'message': 'You have not liked this post.'}, status=status.HTTP_400_BAD_REQUEST)
+			
+		like.delete()
+		return Response({'message': 'You have unliked this post'}, status=status.HTTP_200_OK)
