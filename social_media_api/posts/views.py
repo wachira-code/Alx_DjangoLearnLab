@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets, permissions, filters
+from .views import APIView
+from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from .models import Post, Comment
 from .serializers import PostSerializer, CommentSerializer
@@ -19,7 +21,7 @@ class PostViewSet(viewsets.ModelViewSet):
 	search_fields = ['title', 'content']
 	
 	def perform_create(self, serializer):
-		serializer.save(author=self.request.User)
+		serializer.save(author=self.request.user)
 		
 class CommentViewSet(viewsets.ModelViewSet):
 	queryset = Comment.objects.all().order_by('-created_at')
@@ -28,4 +30,15 @@ class CommentViewSet(viewsets.ModelViewSet):
 	pagination_class = PostPagination
 	
 	def perform_create(self, serializer):
-		serializer.save(author=self.request.User)
+		serializer.save(author=self.request.user)
+
+class FeedView(APIView):
+	permission_classes = [permissions.IsAuthenticated]
+	
+	def get(self, request):
+		followed_users = request.user.following.all() #get all users that current user follows
+		posts = Post.objects.filter(author__in=followed_users).order_by('-created_at') #get posts from those users with the most recent coming first
+		paginator = PostPagination()
+		paginated_posts = paginator.paginate_queryset(posts, request)
+		serializer = PostSerializer(paginated_posts, many=True)
+		return Paginator.get_paginated_response(serializer.data)
